@@ -50,7 +50,8 @@ int main()
         button.setFillColor(buttonSettings[i].color);
         sf::Font font;
         font.loadFromFile("Arial.ttf");
-        sf::Text text = sf::Text(buttonSettings[i].text, font);
+        sf::Text text = sf::Text();
+        text.setString(buttonSettings[i].text);
         text.setPosition(buttonSettings[i].posX+50, buttonSettings[i].posY+25);
         text.setFillColor(sf::Color(255,255,255));
         TextButton textButton{button, text};
@@ -58,14 +59,16 @@ int main()
     }
     sf::RenderWindow mainWindow(sf::VideoMode(widthOfButton * columns + 6, heightOfButton * rows + 6), "Calculator");
 
-
+    sf::Font font;
+    font.loadFromFile("Arial.ttf");
     while (mainWindow.isOpen())
     {
-        sf::Font font;
+
         mainWindow.clear(sf::Color(20, 20, 20));
         for (int i = 0; i < numberOfButtons; i++)
         {
             mainWindow.draw(buttonsWithText[i].first);
+            buttonsWithText[i].second.setFont(font);
             mainWindow.draw(buttonsWithText[i].second);
         }
         mainWindow.display();
