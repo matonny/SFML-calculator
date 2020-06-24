@@ -4,7 +4,26 @@
 #include <SFML/Graphics.hpp>
 
 using TextButton = std::pair<sf::RectangleShape, sf::Text>;
-
+enum Action {
+    none = -1,
+    figure0,
+    figure1,
+    figure2,
+    figure3,
+    figure4,
+    figure5,
+    figure6,
+    figure7,
+    figure8,
+    figure9,
+    division,
+    multiplication,
+    addition,
+    subtraction,
+    calculate,
+    fraction,
+    clear
+};
 struct ButtonSettings
 {
     int height{};
@@ -13,10 +32,11 @@ struct ButtonSettings
     int posY{};
     sf::Color color;
     std::string text;
+    Action action;
 };
 
+Action handleClick(int x, int y, const std::vector<ButtonSettings> &buttons);
 
-void handleClick(int x, int y);
 
 int main()
 {
@@ -28,10 +48,10 @@ int main()
     int heightOfButton = 90;
     int columns = 4;
     int rows = numberOfButtons / columns + 1;
-
+    ButtonSettings settings;
     for (int i = 0; i < numberOfButtons; i++)
     { //generate settings
-        ButtonSettings settings;
+
         settings.height = heightOfButton;
         settings.width = widthOfButton;
         settings.posX = 0 + (i % columns) * (widthOfButton + 1);
@@ -40,6 +60,24 @@ int main()
         settings.text = textContent[i];
         buttonSettings.push_back(settings);
     }
+    buttonSettings[0].action = figure1;
+    buttonSettings[1].action = figure2;
+    buttonSettings[2].action = figure3;
+    buttonSettings[3].action = division;
+    buttonSettings[4].action = figure4;
+    buttonSettings[5].action = figure5;
+    buttonSettings[6].action = figure6;
+    buttonSettings[7].action = multiplication;
+    buttonSettings[8].action = figure7;
+    buttonSettings[9].action = figure8;
+    buttonSettings[10].action = figure9;
+    buttonSettings[11].action = addition;
+    buttonSettings[12].action = figure0;
+    buttonSettings[13].action = clear;
+    buttonSettings[14].action = fraction;
+    buttonSettings[15].action = subtraction;
+    buttonSettings[16].action = calculate;
+
     buttonSettings[numberOfButtons - 1].width = widthOfButton * 3 + 2;
     std::vector<TextButton> buttonsWithText{};
     for (int i = 0; i < numberOfButtons; i++)
@@ -77,7 +115,14 @@ int main()
         {
             if (event.type == sf::Event::MouseButtonPressed)
             {
-                handleClick(event.mouseButton.x, event.mouseButton.y);
+                Action result = handleClick(event.mouseButton.x, event.mouseButton.y, buttonSettings);
+                switch (result){
+                    case figure7:
+                        std::cout << "klik na 7 pyk" << std::endl;
+                        break;
+                    default:
+                        break;
+                }
             }
             // "close requested" event: we close the window
             if (event.type == sf::Event::Closed)
@@ -87,7 +132,14 @@ int main()
 
 }
 
-void handleClick(int x, int y)
+Action handleClick(int x, int y, const std::vector<ButtonSettings> &buttons)
 {
-
+    for(int i = 0; i < buttons.size(); i++){
+        if(buttons[i].posX < x && (buttons[i].posX+buttons[i].width) > x){
+            if(buttons[i].posY < y && (buttons[i].posY+buttons[i].height) > y){
+                return buttons[i].action;
+            }
+        }
+    }
+    return none;
 }
