@@ -26,6 +26,7 @@ enum Action
     fraction,
     clear
 };
+
 struct ButtonSettings
 {
     int height{};
@@ -47,7 +48,8 @@ int main()
     std::vector<std::string> infixNotation{};
     std::string currentInput = "";
     std::vector<std::string> textContent = {"1", "2", "3", "/", "4", "5", "6", "X", "7", "8", "9", "+", "0", "C", ".",
-                                            "-", "=", "123"};
+                                            "-", "=", ""};
+    std::vector<std::string> operators = {"/", "*", "+", "-"};
     constexpr int numberOfButtons = 18;
     std::vector<ButtonSettings> buttonSettings;
     int widthOfButton = 120;
@@ -103,114 +105,106 @@ int main()
 
     sf::Font font;
     font.loadFromFile("/Users/mateusz/Desktop/C++/sfml-calc/cmake-build-debug/Arial.ttf");
+    mainWindow.setFramerateLimit(30);
     sf::Clock timer;
     timer.restart();
     while (mainWindow.isOpen())
     {
-        if (timer.getElapsedTime().asSeconds() > (1.0 / 30.0))
+
+        timer.restart();
+        mainWindow.clear(sf::Color(20, 20, 20));
+        for (int i = 0; i < numberOfButtons; i++)
         {
-            timer.restart();
-            mainWindow.clear(sf::Color(20, 20, 20));
-            for (int i = 0; i < numberOfButtons; i++)
-            {
-                mainWindow.draw(buttonsWithText[i].first);
-                buttonsWithText[i].second.setFont(font);
-                mainWindow.draw(buttonsWithText[i].second);
-            }
-            mainWindow.display();
+            mainWindow.draw(buttonsWithText[i].first);
+            buttonsWithText[i].second.setFont(font);
+            mainWindow.draw(buttonsWithText[i].second);
+        }
+        mainWindow.display();
 
-            float result = 0;
-            sf::Event event;
-            while (mainWindow.pollEvent(event))
+        float result = 0;
+        sf::Event event;
+        while (mainWindow.pollEvent(event))
+        {
+            if (event.type == sf::Event::MouseButtonPressed)
             {
-                if (event.type == sf::Event::MouseButtonPressed)
+                Action value = handleClick(event.mouseButton.x, event.mouseButton.y, buttonSettings);
+                switch (value)
                 {
-                    Action value = handleClick(event.mouseButton.x, event.mouseButton.y, buttonSettings);
-                    switch (value)
-                    {
-                        case figure0:
-                        case figure1:
-                        case figure2:
-                        case figure3:
-                        case figure4:
-                        case figure5:
-                        case figure6:
-                        case figure7:
-                        case figure8:
-                        case figure9:
-                            currentInput += std::to_string(value);
-                            std::cout << currentInput << std::endl;
-                            buttonsWithText[17].second.setString(currentInput);
-                            break;
+                    case figure0:
+                    case figure1:
+                    case figure2:
+                    case figure3:
+                    case figure4:
+                    case figure5:
+                    case figure6:
+                    case figure7:
+                    case figure8:
+                    case figure9:
+                        currentInput += std::to_string(value);
+                        std::cout << currentInput << std::endl;
+                        buttonsWithText[17].second.setString(currentInput);
+                        break;
 
-                        case clear:
+                    case clear:
+                        currentInput = "";
+                        infixNotation.clear();
+                        buttonsWithText[17].second.setString("");
+                        break;
+
+                    case addition:
+                    case subtraction:
+                    case multiplication:
+                    case division:
+                        if (currentInput != "")
+                        {
+//                            if (infixNotation.size() == 1)
+//                            {
+//                                infixNotation.push_back(operators[value-division]);
+//                                infixNotation.push_back(currentInput);
+//                            } else
+//                            {
+//
+//                            }
+
+                            infixNotation.push_back(currentInput);
+                            infixNotation.push_back(operators[value - division]); //10
+                            result = std::stof(currentInput);
                             currentInput = "";
-                            infixNotation.clear();
-                            break;
-
-                        case addition:
-                            std::cout << "dodawanko" << std::endl;
-                            if (currentInput != "")
-                            {
-                                if(infixNotation.size()==0)
-                                {
-                                    infixNotation.push_back(currentInput);
-                                    infixNotation.push_back("+");
-                                }
-                                else{
-                                    infixNotation.push_back("+");
-                                    infixNotation.push_back(currentInput);
-                                }
-
-                                currentInput = "";
+                            if(infixNotation.size()>2){
                                 result = calculateInfix(infixNotation);
-                                buttonsWithText[17].second.setString(std::to_string(result));
+                                infixNotation.clear();
+                                infixNotation.push_back(std::to_string(result));
                             }
-                            break;
-                        case subtraction:
-                            std::cout << "minusik" << std::endl;
-                            infixNotation.push_back(currentInput);
-                            infixNotation.push_back("-");
-                            currentInput = "";
-                            break;
-                        case multiplication:
-                            std::cout << "mnozonko" << std::endl;
-                            infixNotation.push_back(currentInput);
-                            infixNotation.push_back("*");
-                            currentInput = "";
-                            break;
-                        case division:
-                            std::cout << "dzielonko" << std::endl;
-                            infixNotation.push_back(currentInput);
-                            infixNotation.push_back("/");
-                            currentInput = "";
-                            break;
-                        case calculate:
+                            buttonsWithText[17].second.setString(std::to_string(result));
+                        }
+                        break;
+                    case calculate:
+                        if(currentInput.size()!= 0)
+                        {
                             std::cout << "liczonko" << std::endl;
                             infixNotation.push_back(currentInput);
                             currentInput = "";
                             result = calculateInfix(infixNotation);
                             buttonsWithText[17].second.setString(std::to_string(result));
-                            break;
+                        }
+                        break;
 
-                        default:
-                            buttonSettings[13].text = currentInput;
-                            break;
-                    }
-
+                    default:
+                        buttonSettings[13].text = currentInput;
+                        break;
                 }
-                // "close requested" event: we close the window
-                if (event.type == sf::Event::Closed)
-                    mainWindow.close();
+
             }
+            // "close requested" event: we close the window
+            if (event.type == sf::Event::Closed)
+                mainWindow.close();
         }
     }
-
 }
 
 Action handleClick(int x, int y, const std::vector<ButtonSettings> &buttons)
 {
-    for (int i = 0; i < buttons.size(); i++)
+    for (unsigned long int i = 0; i < buttons.size(); i++)
     {
         if (buttons[i].posX < x && (buttons[i].posX + buttons[i].width) > x)
         {
@@ -244,12 +238,13 @@ float calculateInfix(std::vector<std::string> infixNotation)
         prefixNotation.push_back(i);
     }
     std::stack<float> result;
-    for(auto &i : prefixNotation){
+    for (auto &i : prefixNotation)
+    {
         if (i == "+" || i == "/" || i == "*" || i == "-")
         {
             float numberA = result.top();
             result.pop();
-            if(result.size()>0)
+            if (result.size() > 0)
             {
                 float numberB = result.top();
                 result.pop();
@@ -266,15 +261,16 @@ float calculateInfix(std::vector<std::string> infixNotation)
                 {
                     result.push(numberB / numberA);
                 }
-            }else{
-                return numberA; 
+            } else
+            {
+                return numberA;
             }
         } else
         {
             result.push(std::stof(i));
         }
     }
-    std::cout<<result.top()<<std::endl;
+    std::cout << result.top() << std::endl;
     return result.top();
 
 }
