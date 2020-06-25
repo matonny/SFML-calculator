@@ -40,8 +40,10 @@ Action handleClick(int x, int y, const std::vector<ButtonSettings> &buttons);
 
 int main()
 {
+    std::string currentResult = "";
+    std::string previousResult = "";
     std::vector<std::string> textContent = {"1", "2", "3", "/", "4", "5", "6", "X", "7", "8", "9", "+", "0", "C", ".",
-                                            "-", "="};
+                                            "-", "=", currentResult};
     constexpr int numberOfButtons = 18;
     std::vector<ButtonSettings> buttonSettings;
     int widthOfButton = 120;
@@ -55,7 +57,7 @@ int main()
         settings.height = heightOfButton;
         settings.width = widthOfButton;
         settings.posX = 0 + (i % columns) * (widthOfButton + 1);
-        settings.posY = 0 + (i / columns) * (heightOfButton + 1);
+        settings.posY = 0 + (i / columns) * (heightOfButton + 2);
         settings.color = ((i % 4) != 3) ? sf::Color(80, 80, 80) : sf::Color(255, 140, 40);
         settings.text = textContent[i];
         buttonSettings.push_back(settings);
@@ -86,8 +88,6 @@ int main()
         button.setSize(sf::Vector2f(buttonSettings[i].width, buttonSettings[i].height));
         button.setPosition(buttonSettings[i].posX, buttonSettings[i].posY);
         button.setFillColor(buttonSettings[i].color);
-        sf::Font font;
-        font.loadFromFile("Arial.ttf");
         sf::Text text = sf::Text();
         text.setString(buttonSettings[i].text);
         text.setPosition(buttonSettings[i].posX+50, buttonSettings[i].posY+25);
@@ -98,7 +98,7 @@ int main()
     sf::RenderWindow mainWindow(sf::VideoMode(widthOfButton * columns + 6, heightOfButton * rows + 6), "Calculator");
 
     sf::Font font;
-    font.loadFromFile("Arial.ttf");
+    font.loadFromFile("/Users/mateusz/Desktop/C++/sfml-calc/cmake-build-debug/Arial.ttf");
     while (mainWindow.isOpen())
     {
 
@@ -117,12 +117,30 @@ int main()
             {
                 Action result = handleClick(event.mouseButton.x, event.mouseButton.y, buttonSettings);
                 switch (result){
+                    case figure0:
+                    case figure1:
+                    case figure2:
+                    case figure3:
+                    case figure4:
+                    case figure5:
+                    case figure6:
                     case figure7:
-                        std::cout << "klik na 7 pyk" << std::endl;
+                    case figure8:
+                    case figure9:
+                        currentResult += std::to_string(result);
+
+                        std::cout<<currentResult<<std::endl;
                         break;
+
+                    case clear:
+                        currentResult = "";
+                        previousResult = "";
+
                     default:
+                        buttonSettings[13].text = currentResult;
                         break;
                 }
+                buttonsWithText[17  ].second.setString(currentResult);
             }
             // "close requested" event: we close the window
             if (event.type == sf::Event::Closed)
