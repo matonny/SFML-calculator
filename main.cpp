@@ -39,7 +39,7 @@ struct ButtonSettings
 
 Action handleClick(int x, int y, const std::vector<ButtonSettings> &buttons);
 
-int calculateInfix(std::vector<std::string> infixNotation);
+float calculateInfix(std::vector<std::string> infixNotation);
 
 
 int main()
@@ -119,7 +119,7 @@ int main()
             }
             mainWindow.display();
 
-            int result = 0;
+            float result = 0;
             sf::Event event;
             while (mainWindow.pollEvent(event))
             {
@@ -152,9 +152,18 @@ int main()
                             std::cout << "dodawanko" << std::endl;
                             if (currentInput != "")
                             {
-                                infixNotation.push_back(currentInput);
-                                infixNotation.push_back("+");
+                                if(infixNotation.size()==0)
+                                {
+                                    infixNotation.push_back(currentInput);
+                                    infixNotation.push_back("+");
+                                }
+                                else{
+                                    infixNotation.push_back("+");
+                                    infixNotation.push_back(currentInput);
+                                }
+
                                 currentInput = "";
+                                result = calculateInfix(infixNotation);
                                 buttonsWithText[17].second.setString(std::to_string(result));
                             }
                             break;
@@ -181,6 +190,7 @@ int main()
                             infixNotation.push_back(currentInput);
                             currentInput = "";
                             result = calculateInfix(infixNotation);
+                            buttonsWithText[17].second.setString(std::to_string(result));
                             break;
 
                         default:
@@ -213,7 +223,7 @@ Action handleClick(int x, int y, const std::vector<ButtonSettings> &buttons)
     return none;
 }
 
-int calculateInfix(std::vector<std::string> infixNotation)
+float calculateInfix(std::vector<std::string> infixNotation)
 {
     std::vector<std::string> prefixNotation{};
     std::vector<std::string> numbers{};
@@ -239,19 +249,25 @@ int calculateInfix(std::vector<std::string> infixNotation)
         {
             float numberA = result.top();
             result.pop();
-            float numberB = result.top();
-            result.pop();
-            if(i == "+"){
-                result.push(numberB+numberA);
-            }
-            else if(i == "-"){
-                result.push(numberB-numberA);
-            }
-            else if(i == "*"){
-                result.push(numberB*numberA);
-            }
-            else{
-                result.push(numberB/numberA);
+            if(result.size()>0)
+            {
+                float numberB = result.top();
+                result.pop();
+                if (i == "+")
+                {
+                    result.push(numberB + numberA);
+                } else if (i == "-")
+                {
+                    result.push(numberB - numberA);
+                } else if (i == "*")
+                {
+                    result.push(numberB * numberA);
+                } else
+                {
+                    result.push(numberB / numberA);
+                }
+            }else{
+                return numberA; 
             }
         } else
         {
