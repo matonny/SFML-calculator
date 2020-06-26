@@ -35,13 +35,14 @@ struct ButtonSettings
     int posY{};
     sf::Color color;
     std::string text;
-    Action action;
+    Action action{};
 };
 
 Action handleClick(int x, int y, const std::vector<ButtonSettings> &buttons);
 
-float calculateInfix(std::vector<std::string> infixNotation);
+float calculateInfix(const std::vector<std::string>& infixNotation);
 
+bool isAnOperator(std::string testedValue);
 
 int main()
 {
@@ -108,7 +109,9 @@ int main()
     mainWindow.setFramerateLimit(30);
     sf::Clock timer;
     timer.restart();
+    bool wasCalculateUsed = false;
     while (mainWindow.isOpen())
+
     {
 
         timer.restart();
@@ -122,7 +125,7 @@ int main()
         mainWindow.display();
 
         float result = 0;
-        sf::Event event;
+        sf::Event event{};
         while (mainWindow.pollEvent(event))
         {
             if (event.type == sf::Event::MouseButtonPressed)
@@ -141,7 +144,6 @@ int main()
                     case figure8:
                     case figure9:
                         currentInput += std::to_string(value);
-                        std::cout << currentInput << std::endl;
                         buttonsWithText[17].second.setString(currentInput);
                         break;
 
@@ -149,42 +151,48 @@ int main()
                         currentInput = "";
                         infixNotation.clear();
                         buttonsWithText[17].second.setString("");
+                        wasCalculateUsed = false;
                         break;
 
                     case addition:
                     case subtraction:
                     case multiplication:
                     case division:
-                        if (currentInput != "")
+                        if (!currentInput.empty() || ((currentInput.empty() && !isAnOperator(infixNotation[0])) && infixNotation.size() == 1))
                         {
-//                            if (infixNotation.size() == 1)
-//                            {
-//                                infixNotation.push_back(operators[value-division]);
-//                                infixNotation.push_back(currentInput);
-//                            } else
-//                            {
-//
-//                            }
-
-                            infixNotation.push_back(currentInput);
-                            infixNotation.push_back(operators[value - division]); //10
-                            result = std::stof(currentInput);
-                            currentInput = "";
-                            if(infixNotation.size()>2){
+                            if(!wasCalculateUsed)
+                            {
+                                infixNotation.push_back(currentInput);
                                 result = calculateInfix(infixNotation);
-                                infixNotation.clear();
-                                infixNotation.push_back(std::to_string(result));
+                                infixNotation.push_back(operators[value - division]); //10
+                            }else{
+                                infixNotation.push_back(operators[value - division]);
+                                result = calculateInfix(infixNotation);
+                                wasCalculateUsed = false;
                             }
                             buttonsWithText[17].second.setString(std::to_string(result));
+                            currentInput = "";
+//                            if(infixNotation.size()>2){
+//                                result =
+//                                infixNotation.clear();
+//                                infixNotation.push_back(std::to_string(result));
+//                            }
+
+                               for(const auto &i : infixNotation){
+                                    std::cout<<i << " ";
+                                }
+                            std::cout<< std::endl;
                         }
                         break;
                     case calculate:
-                        if(currentInput.size()!= 0)
+                        if(!currentInput.empty())
                         {
-                            std::cout << "liczonko" << std::endl;
+                            wasCalculateUsed = true;
                             infixNotation.push_back(currentInput);
                             currentInput = "";
                             result = calculateInfix(infixNotation);
+                            infixNotation.clear();
+                            infixNotation.push_back(std::to_string(result));
                             buttonsWithText[17].second.setString(std::to_string(result));
                         }
                         break;
@@ -204,20 +212,20 @@ int main()
 
 Action handleClick(int x, int y, const std::vector<ButtonSettings> &buttons)
 {
-    for (unsigned long int i = 0; i < buttons.size(); i++)
+    for (const auto & button : buttons)
     {
-        if (buttons[i].posX < x && (buttons[i].posX + buttons[i].width) > x)
+        if (button.posX < x && (button.posX + button.width) > x)
         {
-            if (buttons[i].posY < y && (buttons[i].posY + buttons[i].height) > y)
+            if (button.posY < y && (button.posY + button.height) > y)
             {
-                return buttons[i].action;
+                return button.action;
             }
         }
     }
     return none;
 }
 
-float calculateInfix(std::vector<std::string> infixNotation)
+float calculateInfix(const std::vector<std::string>& infixNotation)
 {
     std::vector<std::string> prefixNotation{};
     std::vector<std::string> numbers{};
@@ -233,9 +241,8 @@ float calculateInfix(std::vector<std::string> infixNotation)
         }
     }
     prefixNotation = numbers;
-    for (const auto &i : operators)
-    {
-        prefixNotation.push_back(i);
+    for(int i = operators.size()-1; i >= 0; i--){
+        prefixNotation.push_back(operators[i]);
     }
     std::stack<float> result;
     for (auto &i : prefixNotation)
@@ -244,7 +251,7 @@ float calculateInfix(std::vector<std::string> infixNotation)
         {
             float numberA = result.top();
             result.pop();
-            if (result.size() > 0)
+            if (!result.empty())
             {
                 float numberB = result.top();
                 result.pop();
@@ -270,7 +277,15 @@ float calculateInfix(std::vector<std::string> infixNotation)
             result.push(std::stof(i));
         }
     }
+    std::cout << "prefixNotation: ";
+    for(const auto &i : prefixNotation){
+        std::cout<<i;
+        std::cout<< " ";
+    }
+    std::cout <<std::endl;
     std::cout << result.top() << std::endl;
     return result.top();
-
+}
+inline bool isAnOperator(std::string testedValue){
+    return testedValue == "+" || testedValue == "/" || testedValue == "-" || testedValue == "*";
 }
